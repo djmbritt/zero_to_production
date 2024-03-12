@@ -2,11 +2,6 @@
 // Graphemes are a compound of multiple characters and interpreted as one character by humans
 use unicode_segmentation::UnicodeSegmentation;
 
-pub struct NewSubscriber {
-    pub email: String,
-    pub name: SubscriberName,
-}
-
 #[derive(Debug)]
 pub struct SubscriberName(String);
 
