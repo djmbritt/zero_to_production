@@ -1,5 +1,4 @@
 use once_cell::sync::Lazy;
-use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
@@ -140,4 +139,48 @@ async fn subscribe_returns_400_when_data_is_missing() {
             error_message
         );
     }
+}
+
+#[tokio::test]
+async fn subscribe_returns_400_when_fields_fields_are_present_but_invalid() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+    let test_cases = vec![
+        ("name=&email=ursula_le_guin%40gmail.com", "empty name"),
+        ("name=Ursula&email=", "missing email"),
+        ("name=Ursula&email=definitely-not-an-email", "invalid email"),
+    ];
+
+    for (invalid_body, error_message) in test_cases {
+        // Act
+        let response = client
+            .post(&format!("{}/subscriptions", &app.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(invalid_body)
+            .send()
+            .await
+            .expect("Failed to execute request");
+
+        // Assert
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            // The additional customised error message on test failure
+            "The API did not fail with 400 Bad Request when the payload was {}",
+            error_message
+        );
+    }
+}
+
+// What is happening here?
+// This test will fail, and we need to use claims::assert_ok! instead to capture the error.
+// That way we will be able to check that the error is propegated properly,
+// Instead of failing here, we can check that the error.
+#[test]
+fn dummy_fail() {
+    // let result: Result<&str, &str> = Err("App crashed due to dummy error.");
+    let result: Result<&str, &str> = Ok("App is running as it should.");
+    // assert!(result.is_ok());
+    claims::assert_ok!(result);
 }
