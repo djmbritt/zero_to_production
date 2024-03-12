@@ -10,6 +10,29 @@ pub struct FormData {
     name: String,
 }
 
+// TODO: Don't I want to add instrumentation to this function?
+// So when is a function worthy of having instrumentation?
+// It seems like this function is too small to use instrumentaiton?
+// fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
+//     let name = SubscriberName::parse(form.name)?;
+//     let email = SubscriberEmail::parse(form.email)?;
+//     Ok(NewSubscriber { name, email })
+// }
+
+// By implementing TryFrom for new_subscriber we adhere to idomatic Rust.
+// We indicate that we are doing a type conversion.
+// It's the same as the parse_subscriber function defined above,
+// but contextually communicates our intent in idiomatic rust.
+impl TryFrom<FormData> for NewSubscriber {
+    type Error = String; // What is this annotation?
+
+    fn try_from(value: FormData) -> Result<Self, Self::Error> {
+        let name = SubscriberName::parse(value.name)?;
+        let email = SubscriberEmail::parse(value.email)?;
+        Ok(Self { email, name })
+    }
+}
+
 #[tracing::instrument(
     name = "Adding a new subscriber",
     skip(form, pool),
@@ -19,17 +42,10 @@ pub struct FormData {
     )
 )]
 pub async fn subscribe(pool: web::Data<PgPool>, form: web::Form<FormData>) -> HttpResponse {
-    let name = match SubscriberName::parse(form.0.name) {
-        Ok(name) => name,
+    let new_subscriber = match form.0.try_into() {
+        Ok(subscriber) => subscriber,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
-
-    let email = match SubscriberEmail::parse(form.0.email) {
-        Ok(email) => email,
-        Err(_) => return HttpResponse::BadRequest().finish(),
-    };
-
-    let new_subscriber = NewSubscriber { email, name };
 
     match insert_subscriber(&pool, &new_subscriber).await {
         Ok(_) => HttpResponse::Ok().finish(),
