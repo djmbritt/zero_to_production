@@ -187,15 +187,3 @@ async fn subscribe_returns_400_when_fields_fields_are_present_but_invalid() {
         );
     }
 }
-
-// What is happening here?
-// This test will fail, and we need to use claims::assert_ok! instead to capture the error.
-// That way we will be able to check that the error is propegated properly,
-// Instead of failing here, we can check that the error.
-#[test]
-fn dummy_fail() {
-    // let result: Result<&str, &str> = Err("App crashed due to dummy error.");
-    let result: Result<&str, &str> = Ok("App is running as it should.");
-    // assert!(result.is_ok());
-    claims::assert_ok!(result);
-}
