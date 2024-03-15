@@ -1,9 +1,8 @@
 use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
-use tracing::subscriber;
 use uuid::Uuid;
-use zero_to_prod::configuration::{self, get_configuration, DatabaseSettings};
+use zero_to_prod::configuration::{get_configuration, DatabaseSettings};
 use zero_to_prod::email_client::EmailClient;
 use zero_to_prod::startup;
 use zero_to_prod::telemetry::{get_subscriber, init_subscriber};

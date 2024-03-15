@@ -1,6 +1,6 @@
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
-use zero_to_prod::configuration::{self, get_configuration};
+use zero_to_prod::configuration::get_configuration;
 use zero_to_prod::email_client::EmailClient;
 use zero_to_prod::startup;
 use zero_to_prod::telemetry::{get_subscriber, init_subscriber};
