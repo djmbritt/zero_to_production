@@ -1,8 +1,10 @@
 use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
+use tracing::subscriber;
 use uuid::Uuid;
-use zero_to_prod::configuration::{get_configuration, DatabaseSettings};
+use zero_to_prod::configuration::{self, get_configuration, DatabaseSettings};
+use zero_to_prod::email_client::EmailClient;
 use zero_to_prod::startup;
 use zero_to_prod::telemetry::{get_subscriber, init_subscriber};
 
@@ -34,7 +36,19 @@ async fn spawn_app() -> TestApp {
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
 
-    let server = startup::run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let sender_email = configuration
+        .email_client
+        .sender()
+        .expect("Error retrieving email sender.");
+
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+    );
+
+    let server = startup::run(listener, connection_pool.clone(), email_client)
+        .expect("Failed to bind address");
 
     let _ = tokio::spawn(server);
 
