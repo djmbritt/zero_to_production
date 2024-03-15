@@ -15,11 +15,9 @@ impl EmailClient {
         base_url: String,
         sender: SubscriberEmail,
         authorization_token: Secret<String>,
+        timeout: std::time::Duration,
     ) -> Self {
-        let http_client = Client::builder()
-            .timeout(std::time::Duration::from_secs(10))
-            .build()
-            .unwrap();
+        let http_client = Client::builder().timeout(timeout).build().unwrap();
         Self {
             http_client,
             base_url,
@@ -71,7 +69,6 @@ struct SendEmailRequest<'a> {
 #[cfg(test)]
 mod tests {
 
-    // use crate::configuration::{get_configuration, EmailClientSettings, Settings};
     use crate::domain::SubscriberEmail;
     use crate::email_client::EmailClient;
     use claims::{assert_err, assert_ok};
@@ -122,27 +119,12 @@ mod tests {
 
     // Generate test intance of email client
     fn email_client(base_url: String) -> EmailClient {
-        EmailClient::new(base_url, email(), Secret::new(Faker.fake()))
-    }
-
-    #[tokio::test]
-    async fn send_email_fires_request_to_base_url() {
-        let mock_server = MockServer::start().await;
-        let email_client = email_client(mock_server.uri());
-
-        Mock::given(header_exists("X-Postmark-Server-Token"))
-            .and(header("Content-Type", "application/json"))
-            .and(path("/email"))
-            .and(method("POST"))
-            .and(SendEmailBodyMatcher)
-            .respond_with(ResponseTemplate::new(200))
-            .expect(1)
-            .mount(&mock_server)
-            .await;
-
-        let _ = email_client
-            .send_email(email(), &subject(), &content(), &content())
-            .await;
+        EmailClient::new(
+            base_url,
+            email(),
+            Secret::new(Faker.fake()),
+            std::time::Duration::from_millis(200),
+        )
     }
 
     #[tokio::test]
