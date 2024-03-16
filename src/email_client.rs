@@ -26,6 +26,7 @@ impl EmailClient {
         }
     }
 
+    #[tracing::instrument(name = "Sending email")]
     pub async fn send_email(
         &self,
         recipient: SubscriberEmail,
