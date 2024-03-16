@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-# Figure out what `set` does
 set -x
 set -eo pipefail
 
