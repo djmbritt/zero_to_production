@@ -89,7 +89,7 @@ mod tests {
 
             if let Ok(body) = result {
                 // Check that field properties are populated
-                dbg!(&body);
+                // dbg!(&body);
                 body.get("From").is_some()
                     && body.get("To").is_some()
                     && body.get("Subject").is_some()
