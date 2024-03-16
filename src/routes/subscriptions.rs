@@ -10,15 +10,6 @@ pub struct FormData {
     name: String,
 }
 
-// TODO: Don't I want to add instrumentation to this function?
-// So when is a function worthy of having instrumentation?
-// It seems like this function is too small to use instrumentaiton?
-// fn parse_subscriber(form: FormData) -> Result<NewSubscriber, String> {
-//     let name = SubscriberName::parse(form.name)?;
-//     let email = SubscriberEmail::parse(form.email)?;
-//     Ok(NewSubscriber { name, email })
-// }
-
 // By implementing TryFrom for new_subscriber we adhere to idomatic Rust.
 // We indicate that we are doing a type conversion.
 // It's the same as the parse_subscriber function defined above,
